@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merger>
+
+    <dataSet config="main" >
+        <source path="/Users/koruk/Documents/android-projects/thermometer/app/src/main/res" >
+            <file
+                name="icon"
+                path="/Users/koruk/Documents/android-projects/thermometer/app/src/main/res/drawable/icon.png"
+                qualifiers=""
+                type="drawable" />
+            <file
+                name="logo"
+                path="/Users/koruk/Documents/android-projects/thermometer/app/src/main/res/drawable/logo.png"
+                qualifiers=""
+                type="drawable" />
+            <file
+                name="plastic"
+                path="/Users/koruk/Documents/android-projects/thermometer/app/src/main/res/drawable/plastic.jpg"
+                qualifiers=""
+                type="drawable" />
+            <file
+                name="main"
+                path="/Users/koruk/Documents/android-projects/thermometer/app/src/main/res/layout/main.xml"
+                qualifiers=""
+                type="layout" />
+            <file
+                path="/Users/koruk/Documents/android-projects/thermometer/app/src/main/res/values/strings.xml"
+                qualifiers="" >
+                <string name="app_name" >Vintage Therm
+                </string>
+                <string name="hello" >Hello World, ThermometerActivity!
+                </string>
+            </file>
+        </source>
+        <source path="/Users/koruk/Documents/android-projects/thermometer/app/build/res/rs/debug" />
+    </dataSet>
+    <dataSet config="debug" >
+        <source path="/Users/koruk/Documents/android-projects/thermometer/app/src/debug/res" />
+    </dataSet>
+
+</merger>
