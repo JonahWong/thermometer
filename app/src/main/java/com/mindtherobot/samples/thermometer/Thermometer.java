@@ -51,7 +51,7 @@ public final class Thermometer extends View implements SensorEventListener {
 	private Path titlePath;
 
 	private Paint logoPaint;
-	private Bitmap logo;
+	private Bitmap logoBitmap;
 	private Matrix logoMatrix;
 	private float logoScale;
 	
@@ -192,7 +192,7 @@ public final class Thermometer extends View implements SensorEventListener {
         //
 		faceTextureBitmap = BitmapFactory.decodeResource(getContext().getResources(),
 				   R.drawable.plastic);
-		BitmapShader paperShader = new BitmapShader(faceTextureBitmap,
+		BitmapShader paperBitmapShader = new BitmapShader(faceTextureBitmap,
 												    Shader.TileMode.MIRROR, 
 												    Shader.TileMode.MIRROR);
 		Matrix paperMatrix = new Matrix();
@@ -200,12 +200,12 @@ public final class Thermometer extends View implements SensorEventListener {
 		facePaint.setFilterBitmap(false);
 		paperMatrix.setScale(1.0f / faceTextureBitmap.getWidth(),
                 1.0f / faceTextureBitmap.getHeight());
-		paperShader.setLocalMatrix(paperMatrix);
+		paperBitmapShader.setLocalMatrix(paperMatrix);
 		facePaint.setStyle(Paint.Style.FILL);
-		facePaint.setShader(paperShader);
+		facePaint.setShader(paperBitmapShader);
 
 		rimShadowPaint = new Paint();
-		rimShadowPaint.setShader(new RadialGradient(0.5f, 0.5f, faceRect.width() / 2.0f, 
+		rimShadowPaint.setShader(new RadialGradient(0.5f, 0.5f, faceRect.width() / 2.0f,
 				   new int[] { 0x00000000, 0x00000500, 0x50000500 },
 				   new float[] { 0.96f, 0.96f, 0.99f },
 				   Shader.TileMode.MIRROR));
@@ -236,18 +236,29 @@ public final class Thermometer extends View implements SensorEventListener {
 		titlePaint.setTextScaleX(0.8f);
 
 		titlePath = new Path();
+        /**
+         * 分析一下下面的RectF的四个值是如何得到的
+         * rimRect是（0.1， 0.1， 0.9， 0.9）分别对应左上右下
+         * rimSize是0.02
+         *
+         */
 		titlePath.addArc(new RectF(0.24f, 0.24f, 0.76f, 0.76f), -180.0f, -180.0f);
 
 		logoPaint = new Paint();
 		logoPaint.setFilterBitmap(true);
-		logo = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.logo);
+		logoBitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.logo);
 		logoMatrix = new Matrix();
-		logoScale = (1.0f / logo.getWidth()) * 0.3f;;
+		logoScale = (1.0f / logoBitmap.getWidth()) * 0.3f;
 		logoMatrix.setScale(logoScale, logoScale);
 
 		handPaint = new Paint();
 		handPaint.setAntiAlias(true);
-		handPaint.setColor(0xff392f2c);		
+		handPaint.setColor(0xff392f2c);
+        /**
+         * 第一个参数模糊半径，第二三个参数是shadow与其附着物的相对偏移距离，可正可负
+         * 最后一个参数是模糊颜色
+         * Shadow附着在主体之上才有意义，所以中间两个参数就是描述这种相对关系
+         */
 		handPaint.setShadowLayer(0.01f, -0.005f, -0.005f, 0x7f000000);
 		handPaint.setStyle(Paint.Style.FILL);	
 		
@@ -357,8 +368,8 @@ public final class Thermometer extends View implements SensorEventListener {
 	
 	private void drawLogo(Canvas canvas) {
 		canvas.save(Canvas.MATRIX_SAVE_FLAG);
-		canvas.translate(0.5f - logo.getWidth() * logoScale / 2.0f, 
-						 0.5f - logo.getHeight() * logoScale / 2.0f);
+		canvas.translate(0.5f - logoBitmap.getWidth() * logoScale / 2.0f,
+						 0.5f - logoBitmap.getHeight() * logoScale / 2.0f);
 
 		int color = 0x00000000;
 		float position = getRelativeTemperaturePosition();
@@ -371,7 +382,7 @@ public final class Thermometer extends View implements SensorEventListener {
 		LightingColorFilter logoFilter = new LightingColorFilter(0xff338822, color);
 		logoPaint.setColorFilter(logoFilter);
 		
-		canvas.drawBitmap(logo, logoMatrix, logoPaint);
+		canvas.drawBitmap(logoBitmap, logoMatrix, logoPaint);
 		canvas.restore();		
 	}
 
