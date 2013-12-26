@@ -170,15 +170,21 @@ public final class Thermometer extends View implements SensorEventListener {
 	private void initDrawingTools() {
 		rimRect = new RectF(0.1f, 0.1f, 0.9f, 0.9f);
 
-		// the linear gradient is a bit skewed for realism
-        // the bezel paint
+		/** the linear gradient is a bit skewed for realism
+         * the bezel paint
+         * rimPaint 画最外层的bezel，颜色渐变是从左上（偏上）到右下（偏下）渐变（0.4，0） - （0.6， 1）
+         *
+         * */
 		rimPaint = new Paint();
 		rimPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
-		rimPaint.setShader(new LinearGradient(0.40f, 0.0f, 0.60f, 1.0f, 
+
+		rimPaint.setShader(new LinearGradient(0.40f, 0.0f, 0.60f, 1.0f,
 										   Color.rgb(0xf0, 0xf5, 0xf0),
 										   Color.rgb(0x30, 0x31, 0x30),
-										   Shader.TileMode.CLAMP));		
-
+										   Shader.TileMode.CLAMP));
+        /** rimCirclePaint用来画紧贴最外层bezel的一层半透明灰色部分
+         *
+         * */
 		rimCirclePaint = new Paint();
 		rimCirclePaint.setAntiAlias(true);
 		rimCirclePaint.setStyle(Paint.Style.STROKE);
@@ -195,13 +201,21 @@ public final class Thermometer extends View implements SensorEventListener {
 		BitmapShader paperBitmapShader = new BitmapShader(faceTextureBitmap,
 												    Shader.TileMode.MIRROR, 
 												    Shader.TileMode.MIRROR);
-		Matrix paperMatrix = new Matrix();
 		facePaint = new Paint();  //used to paint the white area within the bezel.
-		facePaint.setFilterBitmap(false);
-		paperMatrix.setScale(1.0f / faceTextureBitmap.getWidth(),
-                1.0f / faceTextureBitmap.getHeight());
+        /** 下面这个是画笔优化策略*/
+		facePaint.setFilterBitmap(true);
+
+        /** 类似设置画笔笔触大小*/
+        Matrix paperMatrix = new Matrix();
+		paperMatrix.setScale(1.0f / faceTextureBitmap.getWidth(), 1.0f / faceTextureBitmap.getHeight());
 		paperBitmapShader.setLocalMatrix(paperMatrix);
-		facePaint.setStyle(Paint.Style.FILL);
+
+        /** 设置画图方式为填充内容，此处也就是Bitmap图片内容作为填充内容，而不是作为边线的背景*/
+        facePaint.setStyle(Paint.Style.FILL);
+        /** 设置画笔的着色器，也就是画笔画一下其实就是输入Bitmap到画布上，
+         * 用Shader有点批处理的意味，一次不是画一个点、一条线，而是一次整幅画都出来了
+         *
+         * */
 		facePaint.setShader(paperBitmapShader);
 
 		rimShadowPaint = new Paint();
@@ -441,7 +455,8 @@ public final class Thermometer extends View implements SensorEventListener {
 		
 		regenerateBackground();
 	}
-	
+
+    /** 将不变的界面元素都画到一个Bitmap背景中，以内存换性能*/
 	private void regenerateBackground() {
 		// free the old bitmap
 		if (background != null) {
