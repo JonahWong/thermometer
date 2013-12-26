@@ -74,7 +74,7 @@ public final class Thermometer extends View implements SensorEventListener {
 	// hand dynamics -- all are angular expressed in F degrees
 	private boolean handInitialized = true;
 	private float handPosition = minDegrees;
-	private float handTarget = maxDegrees;
+	private float handTarget = centerDegree;
 	private float handVelocity = 0.0f;
 	private float handAcceleration = 0.0f;
 	private long lastHandMoveTime = -1L;
@@ -261,7 +261,10 @@ public final class Thermometer extends View implements SensorEventListener {
          */
 		handPaint.setShadowLayer(0.01f, -0.005f, -0.005f, 0x7f000000);
 		handPaint.setStyle(Paint.Style.FILL);	
-		
+
+        /** 注意下面的路径的最终效果是指针垂直向下，类似时钟六点的效果。细指针在上，粗指针在下
+         *  效果图 {@value com.mindtherobot.samples.thermometer.R.drawable.needle_path_effect}
+         * */
 		handPath = new Path();
         /** P-0 - 指针粗头的顶点，其中0.5f表示中间位置，0.2f表示中点一下的offset，其中表盘face刻度以内的圆的半径大约0.3*/
 		handPath.moveTo(0.5f, 0.5f + 0.2f);
