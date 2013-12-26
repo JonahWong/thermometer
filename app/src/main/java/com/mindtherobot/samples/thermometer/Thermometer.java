@@ -263,14 +263,22 @@ public final class Thermometer extends View implements SensorEventListener {
 		handPaint.setStyle(Paint.Style.FILL);	
 		
 		handPath = new Path();
+        /** P-0 - 指针粗头的顶点，其中0.5f表示中间位置，0.2f表示中点一下的offset，其中表盘face刻度以内的圆的半径大约0.3*/
 		handPath.moveTo(0.5f, 0.5f + 0.2f);
-		handPath.lineTo(0.5f - 0.010f, 0.5f + 0.2f - 0.007f);
-		handPath.lineTo(0.5f - 0.002f, 0.5f - 0.32f);
-		handPath.lineTo(0.5f + 0.002f, 0.5f - 0.32f);
+        /** P-1  - 稍微向左上偏移一点，形成粗头尖角效果的左侧部分*/
+        handPath.lineTo(0.5f - 0.010f, 0.5f + 0.2f - 0.007f);
+        /** P-2  - 路径从下半部分画到指针细头左侧部分*/
+        handPath.lineTo(0.5f - 0.002f, 0.5f - 0.32f);
+        /** P+2  - 指针细头左侧部分到细头右侧部分，很短的offset-x，否则细头就变成粗头了哦。注意此处y值保持不变。与p-2过程相对应*/
+        handPath.lineTo(0.5f + 0.002f, 0.5f - 0.32f);
+        /** P+1  - 指针再次从细头画到粗头，形成粗头尖角的右侧部分。与p-1过程相对应*/
 		handPath.lineTo(0.5f + 0.010f, 0.5f + 0.2f - 0.007f);
+        /** p+0  - 指针路径重新回到指针最初开始的地方，到此已经形成闭合路径。与p-0过程相对应*/
 		handPath.lineTo(0.5f, 0.5f + 0.2f);
+        /** 上面就已经形成闭合路径了，下面是为了在表盘face中间位置画一个同颜色的圆环，包括上面的闭合路径+下面的圆环都是实色填充*/
 		handPath.addCircle(0.5f, 0.5f, 0.025f, Path.Direction.CW);
-		
+
+        /** 下面的画笔工具是为了在表盘face中间的圆环的中间部分画不同颜色的圆环，配合上一步画的圆环，以达到3D的screw效果*/
 		handScrewPaint = new Paint();
 		handScrewPaint.setAntiAlias(true);
 		handScrewPaint.setColor(0xff493f3c);
