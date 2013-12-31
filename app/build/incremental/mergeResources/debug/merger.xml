@@ -31,6 +31,16 @@
                 <string name="hello" >Hello World, ThermometerActivity!
                 </string>
             </file>
+            <file
+                name="gauge_view_implementation_process_size_included"
+                path="/Users/koruk/Documents/android-projects/thermometer/app/src/main/res/drawable-xhdpi/gauge_view_implementation_process_size_included.png"
+                qualifiers="xhdpi"
+                type="drawable" />
+            <file
+                name="needle_path_effect"
+                path="/Users/koruk/Documents/android-projects/thermometer/app/src/main/res/drawable-xhdpi/needle_path_effect.png"
+                qualifiers="xhdpi"
+                type="drawable" />
         </source>
         <source path="/Users/koruk/Documents/android-projects/thermometer/app/build/res/rs/debug" />
     </dataSet>

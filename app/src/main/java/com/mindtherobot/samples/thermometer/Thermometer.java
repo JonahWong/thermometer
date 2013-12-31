@@ -168,6 +168,14 @@ public final class Thermometer extends View implements SensorEventListener {
 	}
 
 	private void initDrawingTools() {
+
+        /** 控件绘制包含两个步骤
+         * 指定画笔 - 绘制效果 Paint
+         * 指定区间（位置） - 绘制位置 RectF
+         * 也就是“在什么位置绘制什么效果”的问题
+         *
+         * */
+
 		rimRect = new RectF(0.1f, 0.1f, 0.9f, 0.9f);
 
 		/** the linear gradient is a bit skewed for realism
@@ -182,7 +190,7 @@ public final class Thermometer extends View implements SensorEventListener {
 										   Color.rgb(0xf0, 0xf5, 0xf0),
 										   Color.rgb(0x30, 0x31, 0x30),
 										   Shader.TileMode.CLAMP));
-        /** rimCirclePaint用来画紧贴最外层bezel的一层半透明灰色部分
+        /** rimCirclePaint 为了适应不同的页面背景，需要在bezel外面画一圈轮廓暗圈
          *
          * */
 		rimCirclePaint = new Paint();
@@ -193,6 +201,10 @@ public final class Thermometer extends View implements SensorEventListener {
 
 		float rimSize = 0.02f;//bezel width
 		faceRect = new RectF();//faceRect is what resides within the bezel.
+        /**
+         * faceRect 范围是在rimRect范围的基础上四个边均向内缩进rimSize大小的区域
+         * Actually，正是因为这个缩进才让rim区域有了rim环的样式（rim本身是一个有填充的圆形区域）
+         */
 		faceRect.set(rimRect.left + rimSize, rimRect.top + rimSize, 
 			     rimRect.right - rimSize, rimRect.bottom - rimSize);		
         //
@@ -218,13 +230,26 @@ public final class Thermometer extends View implements SensorEventListener {
          * */
 		facePaint.setShader(paperBitmapShader);
 
+        /** bezel 以内的那一圈半透明效果的阴影*/
 		rimShadowPaint = new Paint();
+        /** 阴影效果的具体设置
+         *  使用了一个辐射渐变的着色器，设置如下：
+         *  辐射渐变的中心辐射点，即圆点。辐射半径，圆点和半径指定了辐射渐变的作用区域
+         *  然后接下来的两个参数int[] float[]相互对应，表示以上区域内在float[]表示的区间内响应的应用int[]里的颜色
+         *  它们是一一对应的
+         *  当然float[]也可以为null，此时int[]里颜色会在圆心与区域边界之间均匀分布
+         *  最后一个参数是着色模式
+         * */
 		rimShadowPaint.setShader(new RadialGradient(0.5f, 0.5f, faceRect.width() / 2.0f,
 				   new int[] { 0x00000000, 0x00000500, 0x50000500 },
 				   new float[] { 0.96f, 0.96f, 0.99f },
 				   Shader.TileMode.MIRROR));
 		rimShadowPaint.setStyle(Paint.Style.FILL);
 
+        /**
+         * 画表盘刻度的画笔
+         * 特别注意下它使用了setTextScaleX方法来表示文字有收紧效果，就是变得纤细了。高度方面无影响
+         * */
 		scalePaint = new Paint();
 		scalePaint.setStyle(Paint.Style.STROKE);
 		scalePaint.setColor(0x9f004d0f);
@@ -235,7 +260,17 @@ public final class Thermometer extends View implements SensorEventListener {
 		scalePaint.setTypeface(Typeface.SANS_SERIF);
 		scalePaint.setTextScaleX(0.8f);
 		scalePaint.setTextAlign(Paint.Align.CENTER);		
-		
+
+        /**
+         * 设置刻度占用的空间为0.1f的高度的圆环
+         * 也就是说刻度之内的圆环半径仅剩0.3了
+         * 指定刻度大小是为了指定刻度的区域RectF
+         * 此处的区域其实是覆盖了刻度以内区域的
+         * 只是说刻度以内的其他元素比如logo等绘制后会在刻度区域内进行
+         *
+         * 其实就是外层的区间包含了内层的区间
+         * 内层的区间是在相邻外层的范围内绘制的
+         * */
 		float scalePosition = 0.10f;
 		scaleRect = new RectF();
 		scaleRect.set(faceRect.left + scalePosition, faceRect.top + scalePosition,
@@ -254,7 +289,9 @@ public final class Thermometer extends View implements SensorEventListener {
          * 分析一下下面的RectF的四个值是如何得到的
          * rimRect是（0.1， 0.1， 0.9， 0.9）分别对应左上右下
          * rimSize是0.02
-         *
+         * 关于下面的数字是如何得出的可以看下R.drawable.gauge_view_implementation_process_size_included效果图
+         * 这个坐标其实就是蓝色矩形的坐标。
+         * 弧线路径就是基于该蓝色矩形的
          */
 		titlePath.addArc(new RectF(0.24f, 0.24f, 0.76f, 0.76f), -180.0f, -180.0f);
 
@@ -337,16 +374,52 @@ public final class Thermometer extends View implements SensorEventListener {
 		return 300;
 	}
 
+    /** 在canvas上画出Bezel
+     * 包括灰色边，还有在黑色主题下不易看到的暗色细边——通过rimCirclePaint来画
+     *
+     * */
 	private void drawRim(Canvas canvas) {
 		// first, draw the metallic body
+        /**
+         * 注意虽说是画rim，但是实际上画的是包括其内部填充的
+         * 是通过线性着色器画的
+         * 只是说因为在其范围内继续画其他的组件，所以就产生了rim的效果了
+         * */
 		canvas.drawOval(rimRect, rimPaint);
 		// now the outer rim circle
+        /**
+         * 画rim的外层暗圈
+         * 注意：首先应该知道画的什么是由画笔决定的
+         * 包括是画的填充界面还是还是画的只是一个stroke线条。
+         * 比如下面的rimCirclePaint就是画的stroke线条
+         * 线条位置是根据rimRect来决定的
+         * 线条形状是根据drawOval方法决定了是椭圆线条。
+         *
+         * 所以，画笔最终要画的就是矩形范围内的椭圆曲线，此处矩形为正方形。
+         * 所以，就是画一个圆圈啦。
+         *
+         * */
 		canvas.drawOval(rimRect, rimCirclePaint);
 	}
-	
-	private void drawFace(Canvas canvas) {		
+
+    /**
+     * 画表盘：纹理
+     *
+     * */
+	private void drawFace(Canvas canvas) {
+        /**
+         * faceRect 范围是在rimRect范围的基础上四个边均向内缩进rimSize大小的区域
+         * Actually，正是因为这个缩进才让rim区域有了rim环的样式（rim本身是一个有填充的圆形区域）
+         */
 		canvas.drawOval(faceRect, facePaint);
 		// draw the inner rim circle
+        /**
+         * rim之内的暗圈是画在faceRect范围之内的，而不是rimRect之内。
+         * 不过按理说该画到rimRect范围内
+         * update:考虑到一个矩形区域内，如果不指定其他区域的话就只能画一个对应的圆圈。
+         * 所以，在之前drawRim方法中已经画了一个外圈了，内圈就只能通过rim矩形范围内的其他矩形范围来画了。
+         * 就是下面的drawOval方法啦
+         */
 		canvas.drawOval(faceRect, rimCirclePaint);
 		// draw the rim shadow inside the face
 		canvas.drawOval(faceRect, rimShadowPaint);
