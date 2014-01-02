@@ -577,6 +577,7 @@ public final class Thermometer extends View implements SensorEventListener {
 
     /**
      * By default,there's no hand showing to the user.Only if the hand is initialized,it shows.
+     * Draw hand according to handPosition(initial position),not the targetPosition,which is used in the moveHand method.
      * @param canvas
      */
 	private void drawHand(Canvas canvas) {
@@ -656,7 +657,10 @@ public final class Thermometer extends View implements SensorEventListener {
 	private boolean handNeedsToMove() {
 		return Math.abs(handPosition - handTarget) > 0.01f;
 	}
-	
+
+    /**
+     * called in the onDraw method
+     */
 	private void moveHand() {
         /**
          * temprature changes so little that we can just ignore it.
@@ -683,6 +687,10 @@ public final class Thermometer extends View implements SensorEventListener {
 			}
 			handPosition += handVelocity * delta;
 			handVelocity += handAcceleration * delta;
+            /**
+             * the handPosition will more and more approach to the handTarget,and when their distance is within 0.01f,then we should directly set
+             * the handPosition to handTarget. and set related params to their initial state and stop moving.
+             */
 			if ((handTarget - handPosition) * direction < 0.01f * direction) {
 				handPosition = handTarget;
 				handVelocity = 0.0f;
