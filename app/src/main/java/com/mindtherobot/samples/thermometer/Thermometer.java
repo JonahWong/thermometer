@@ -45,6 +45,9 @@ public final class Thermometer extends View implements SensorEventListener {
 	private Paint rimShadowPaint;
 	
 	private Paint scalePaint;
+    /**
+     * 刻度那个圈所在的区域
+     */
 	private RectF scaleRect;
 	
 	private Paint titlePaint;	
@@ -66,13 +69,25 @@ public final class Thermometer extends View implements SensorEventListener {
 	
 	// scale configuration
 	private static final int totalNicks = 100;
-	private static final float degreesPerNick = 360.0f / totalNicks;	
+	private static final float degreesPerNick = 360.0f / totalNicks;
+    /**
+     * 12点方向上显示的温度数
+     * 注意，不是12点方向就是90°，显示的是温度值，不是角度值
+     */
 	private static final int centerDegree = 40; // the one in the top center (12 o'clock)
-	private static final int minDegrees = -30;
+    /**
+     * 左侧显示的最小温度数
+     * 刻度上显示的是温度值，不是角度值
+     */
+    private static final int minDegrees = -30;
+    /**
+     * 右侧显示的最大温度数
+     * 刻度上显示的是温度值，不是角度值
+     */
 	private static final int maxDegrees = 110;
 	
 	// hand dynamics -- all are angular expressed in F degrees
-	private boolean handInitialized = true;
+	private boolean handInitialized = false;
 	private float handPosition = minDegrees;
 	private float handTarget = centerDegree;
 	private float handVelocity = 0.0f;
@@ -239,6 +254,7 @@ public final class Thermometer extends View implements SensorEventListener {
          *  它们是一一对应的
          *  当然float[]也可以为null，此时int[]里颜色会在圆心与区域边界之间均匀分布
          *  最后一个参数是着色模式
+         *  TODO the parameters of RadialGradient
          * */
 		rimShadowPaint.setShader(new RadialGradient(0.5f, 0.5f, faceRect.width() / 2.0f,
 				   new int[] { 0x00000000, 0x00000500, 0x50000500 },
@@ -249,6 +265,7 @@ public final class Thermometer extends View implements SensorEventListener {
         /**
          * 画表盘刻度的画笔
          * 特别注意下它使用了setTextScaleX方法来表示文字有收紧效果，就是变得纤细了。高度方面无影响
+         * 刻度粗细与rimCirclePaint画笔一样
          * */
 		scalePaint = new Paint();
 		scalePaint.setStyle(Paint.Style.STROKE);
@@ -419,27 +436,62 @@ public final class Thermometer extends View implements SensorEventListener {
          * update:考虑到一个矩形区域内，如果不指定其他区域的话就只能画一个对应的圆圈。
          * 所以，在之前drawRim方法中已经画了一个外圈了，内圈就只能通过rim矩形范围内的其他矩形范围来画了。
          * 就是下面的drawOval方法啦
+         * rimCirclePaint 画笔的笔触大小0.005（其中表盘环形标题离表盘的距离0.02，so 你可以知道0.005大概的大小）
          */
 		canvas.drawOval(faceRect, rimCirclePaint);
-		// draw the rim shadow inside the face
+
+		/** draw the rim shadow inside the face
+         *  rimShadowPaint画笔中用的RadialGradient的作用范围是faceRect区域中的 new float[] { 0.96f, 0.96f, 0.99f }
+         * */
 		canvas.drawOval(faceRect, rimShadowPaint);
 	}
 
+    /**
+     * 画刻度
+     * @param canvas
+     */
 	private void drawScale(Canvas canvas) {
 		canvas.drawOval(scaleRect, scalePaint);
 
+        /**
+         * restore the current matrix when restore() is called
+         */
 		canvas.save(Canvas.MATRIX_SAVE_FLAG);
+        /**
+         * for循环画出所有100个刻度
+         */
 		for (int i = 0; i < totalNicks; ++i) {
+            /**
+             * 刻度所在圈的上位置
+             */
 			float y1 = scaleRect.top;
+            /**
+             * 刻度的上位置
+             * 0.020f是刻度上位置与刻度圆圈的距离
+             */
 			float y2 = y1 - 0.020f;
-			
+            /**
+             * 画最上面（北极星方向）的竖直的那条刻度短线
+             *
+             * startX The x-coordinate of the start point of the line
+             * startY The y-coordinate of the start point of the line
+             * paint  The paint used to draw the line
+             */
 			canvas.drawLine(0.5f, y1, 0.5f, y2, scalePaint);
-			
+
+            /**
+             * i 表示第i个刻痕口
+             * 一共有100个刻痕口，也就是整个表盘刻度被分成了100份
+             * 下面的%5中的5指的是5个格显示一次温度（刻度值）
+             */
 			if (i % 5 == 0) {
 				int value = nickToDegree(i);
 				
 				if (value >= minDegrees && value <= maxDegrees) {
 					String valueString = Integer.toString(value);
+                    /**
+                     * 0.015f是刻度与刻度值的距离
+                     */
 					canvas.drawText(valueString, 0.5f, y2 - 0.015f, scalePaint);
 				}
 			}
@@ -448,14 +500,39 @@ public final class Thermometer extends View implements SensorEventListener {
 		}
 		canvas.restore();		
 	}
-	
+
+    /**
+     *
+     * @param nick 刻度格子数 0 - 100 个格子
+     * @return 格子对应的刻度数 刻度上显示的温度的度数 也就是返回的某个位置对应的温度数
+     */
 	private int nickToDegree(int nick) {
+        /**
+         * 从12点方向开始算，nick=0
+         * 6点方向，nick = totalNicks/2 = 50
+         * 设置12点到6点之间的是正值，即0°到49°
+         * 而从6点到12点之间的是负值，即零下的度数。零下50°到零下1°
+         * 但考虑到40°（华氏）算是比较中间的温度值，所以中间的度数设置为40°
+         * 所以在上面两个温度值范围基础之上再加40，即中间值 centerDegree
+         * 同时要考虑实际情况，设置一个最小温度值零下30°，一个最大温度值110°
+         */
 		int rawDegree = ((nick < totalNicks / 2) ? nick : (nick - totalNicks)) * 2;
 		int shiftedDegree = rawDegree + centerDegree;
 		return shiftedDegree;
 	}
-	
+
+    /**
+     * 温度值转角度值（几何概念）
+     *
+     * @param degree
+     * @return
+     */
 	private float degreeToAngle(float degree) {
+        /**
+         * 温度值-中间温度值，然后除以2，表示他们之间有几个刻度格子
+         * 然后与每个格子代表的角度值（几何概念）相乘得到真实的角度值，即
+         * 12点方向角度值是0.0f，6点方向角度值是90.0f 因为整个圆形表盘的角度值一共是360.0f
+         */
 		return (degree - centerDegree) / 2.0f * degreesPerNick;
 	}
 	
