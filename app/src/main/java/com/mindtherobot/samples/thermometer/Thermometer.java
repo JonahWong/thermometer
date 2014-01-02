@@ -49,12 +49,15 @@ public final class Thermometer extends View implements SensorEventListener {
      * 刻度那个圈所在的区域
      */
 	private RectF scaleRect;
-	
-	private Paint titlePaint;	
+
+	private Paint titlePaint;
 	private Path titlePath;
 
 	private Paint logoPaint;
 	private Bitmap logoBitmap;
+    /**
+     * Logo scale = 0.3 in this example
+     */
 	private Matrix logoMatrix;
 	private float logoScale;
 	
@@ -220,7 +223,7 @@ public final class Thermometer extends View implements SensorEventListener {
          * faceRect 范围是在rimRect范围的基础上四个边均向内缩进rimSize大小的区域
          * Actually，正是因为这个缩进才让rim区域有了rim环的样式（rim本身是一个有填充的圆形区域）
          */
-		faceRect.set(rimRect.left + rimSize, rimRect.top + rimSize, 
+		faceRect.set(rimRect.left + rimSize, rimRect.top + rimSize,
 			     rimRect.right - rimSize, rimRect.bottom - rimSize);		
         //
 		faceTextureBitmap = BitmapFactory.decodeResource(getContext().getResources(),
@@ -547,6 +550,9 @@ public final class Thermometer extends View implements SensorEventListener {
 						 0.5f - logoBitmap.getHeight() * logoScale / 2.0f);
 
 		int color = 0x00000000;
+        /**
+         * position range is 0 to 1(rightside to the center) and -1 to 0(leftside to the center)
+         */
 		float position = getRelativeTemperaturePosition();
 		if (position < 0) {
 			color |= (int) ((0xf0) * -position); // blue
@@ -554,21 +560,41 @@ public final class Thermometer extends View implements SensorEventListener {
 			color |= ((int) ((0xf0) * position)) << 16; // red			
 		}
 		//Log.d(TAG, "*** " + Integer.toHexString(color));
+        /**
+         * color gradient filter to set to Paint object.
+         * Changing color of the logo according to temprature.
+         */
 		LightingColorFilter logoFilter = new LightingColorFilter(0xff338822, color);
 		logoPaint.setColorFilter(logoFilter);
-		
+
+        /**
+         * logoMatrix specify the bitmap is scaled to 0.3 of its initial self.
+         * Specify the size(second parameter) and color vary(third parameter)
+         */
 		canvas.drawBitmap(logoBitmap, logoMatrix, logoPaint);
 		canvas.restore();		
 	}
 
+    /**
+     * By default,there's no hand showing to the user.Only if the hand is initialized,it shows.
+     * @param canvas
+     */
 	private void drawHand(Canvas canvas) {
 		if (handInitialized) {
+            /**
+             * handAngle is relative to the 12 o'clock.
+             * handAngle is 0 when it's 12 o'clock.
+             * handPosition is the value of temprature.
+             * That is to say,how we can get angle from temprature value,we can do this through degreeToAngle() method.
+             */
 			float handAngle = degreeToAngle(handPosition);
 			canvas.save(Canvas.MATRIX_SAVE_FLAG);
 			canvas.rotate(handAngle, 0.5f, 0.5f);
 			canvas.drawPath(handPath, handPaint);
 			canvas.restore();
-			
+            /**
+             * Draw the grey hand screw dot in the middle.
+             */
 			canvas.drawCircle(0.5f, 0.5f, 0.01f, handScrewPaint);
 		}
 	}
@@ -614,6 +640,9 @@ public final class Thermometer extends View implements SensorEventListener {
 		}
 		
 		background = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
+        /**
+         * construct a canvas with the specified bitmap to draw into. The bitmap must be mutable.
+         */
 		Canvas backgroundCanvas = new Canvas(background);
 		float scale = (float) getWidth();		
 		backgroundCanvas.scale(scale, scale);
@@ -629,14 +658,23 @@ public final class Thermometer extends View implements SensorEventListener {
 	}
 	
 	private void moveHand() {
+        /**
+         * temprature changes so little that we can just ignore it.
+         */
 		if (! handNeedsToMove()) {
 			return;
 		}
 		
 		if (lastHandMoveTime != -1L) {
 			long currentTime = System.currentTimeMillis();
+            /**
+             * delta is second Type.
+             */
 			float delta = (currentTime - lastHandMoveTime) / 1000.0f;
 
+            /**
+             * often used in Comparable interface,if > 0 return 1.0 if < 0 ,return -1.0;if 0 return 0;
+             */
 			float direction = Math.signum(handVelocity);
 			if (Math.abs(handVelocity) < 90.0f) {
 				handAcceleration = 5.0f * (handTarget - handPosition);
@@ -677,7 +715,12 @@ public final class Thermometer extends View implements SensorEventListener {
 			Log.w(TAG, "Empty sensor event received");
 		}
 	}
-	
+
+    /**
+     * get the value to change the color of the logo.
+     * This is responding to temperature changing
+     * @return
+     */
 	private float getRelativeTemperaturePosition() {
 		if (handPosition < centerDegree) {
 			return - (centerDegree - handPosition) / (float) (centerDegree - minDegrees);
@@ -694,6 +737,9 @@ public final class Thermometer extends View implements SensorEventListener {
 		}
 		handTarget = temperature;
 		handInitialized = true;
+        /**
+         * Internally,it will call onDraw method
+         */
 		invalidate();
 	}
 }
