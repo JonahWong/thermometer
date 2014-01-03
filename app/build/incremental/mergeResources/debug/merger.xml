@@ -2,39 +2,39 @@
 <merger>
 
     <dataSet config="main" >
-        <source path="/Users/mac/Documents/android-projects/thermometer/app/src/main/res" >
+        <source path="/Users/koruk/Documents/android-projects/thermometer/app/src/main/res" >
             <file
                 name="icon"
-                path="/Users/mac/Documents/android-projects/thermometer/app/src/main/res/drawable/icon.png"
+                path="/Users/koruk/Documents/android-projects/thermometer/app/src/main/res/drawable/icon.png"
                 qualifiers=""
                 type="drawable" />
             <file
                 name="logo"
-                path="/Users/mac/Documents/android-projects/thermometer/app/src/main/res/drawable/logo.png"
+                path="/Users/koruk/Documents/android-projects/thermometer/app/src/main/res/drawable/logo.png"
                 qualifiers=""
                 type="drawable" />
             <file
                 name="plastic"
-                path="/Users/mac/Documents/android-projects/thermometer/app/src/main/res/drawable/plastic.jpg"
+                path="/Users/koruk/Documents/android-projects/thermometer/app/src/main/res/drawable/plastic.jpg"
                 qualifiers=""
                 type="drawable" />
             <file
                 name="gauge_view_implementation_process_size_included"
-                path="/Users/mac/Documents/android-projects/thermometer/app/src/main/res/drawable-xhdpi/gauge_view_implementation_process_size_included.png"
+                path="/Users/koruk/Documents/android-projects/thermometer/app/src/main/res/drawable-xhdpi/gauge_view_implementation_process_size_included.png"
                 qualifiers="xhdpi"
                 type="drawable" />
             <file
                 name="needle_path_effect"
-                path="/Users/mac/Documents/android-projects/thermometer/app/src/main/res/drawable-xhdpi/needle_path_effect.png"
+                path="/Users/koruk/Documents/android-projects/thermometer/app/src/main/res/drawable-xhdpi/needle_path_effect.png"
                 qualifiers="xhdpi"
                 type="drawable" />
             <file
                 name="main"
-                path="/Users/mac/Documents/android-projects/thermometer/app/src/main/res/layout/main.xml"
+                path="/Users/koruk/Documents/android-projects/thermometer/app/src/main/res/layout/main.xml"
                 qualifiers=""
                 type="layout" />
             <file
-                path="/Users/mac/Documents/android-projects/thermometer/app/src/main/res/values/strings.xml"
+                path="/Users/koruk/Documents/android-projects/thermometer/app/src/main/res/values/strings.xml"
                 qualifiers="" >
                 <string name="app_name" >Vintage Therm
                 </string>
@@ -42,10 +42,10 @@
                 </string>
             </file>
         </source>
-        <source path="/Users/mac/Documents/android-projects/thermometer/app/build/res/rs/debug" />
+        <source path="/Users/koruk/Documents/android-projects/thermometer/app/build/res/rs/debug" />
     </dataSet>
     <dataSet config="debug" >
-        <source path="/Users/mac/Documents/android-projects/thermometer/app/src/debug/res" />
+        <source path="/Users/koruk/Documents/android-projects/thermometer/app/src/debug/res" />
     </dataSet>
 
 </merger>

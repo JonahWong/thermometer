@@ -91,7 +91,7 @@ public final class Thermometer extends View implements SensorEventListener {
 	
 	// hand dynamics -- all are angular expressed in F degrees
 	private boolean handInitialized = false;
-	private float handPosition = minDegrees;
+	private float handPosition = centerDegree;
 	private float handTarget = centerDegree;
 	private float handVelocity = 0.0f;
 	private float handAcceleration = 0.0f;
@@ -225,7 +225,7 @@ public final class Thermometer extends View implements SensorEventListener {
          */
 		faceRect.set(rimRect.left + rimSize, rimRect.top + rimSize,
 			     rimRect.right - rimSize, rimRect.bottom - rimSize);		
-        //
+
 		faceTextureBitmap = BitmapFactory.decodeResource(getContext().getResources(),
 				   R.drawable.plastic);
 		BitmapShader paperBitmapShader = new BitmapShader(faceTextureBitmap,
@@ -277,6 +277,8 @@ public final class Thermometer extends View implements SensorEventListener {
 		scalePaint.setAntiAlias(true);
 		
 		scalePaint.setTextSize(0.045f);
+        scalePaint.setLinearText(true);
+//		scalePaint.setTextSize(1.0f);
 		scalePaint.setTypeface(Typeface.SANS_SERIF);
 		scalePaint.setTextScaleX(0.8f);
 		scalePaint.setTextAlign(Paint.Align.CENTER);		
@@ -458,6 +460,7 @@ public final class Thermometer extends View implements SensorEventListener {
 
         /**
          * restore the current matrix when restore() is called
+         *
          */
 		canvas.save(Canvas.MATRIX_SAVE_FLAG);
         /**
@@ -499,7 +502,7 @@ public final class Thermometer extends View implements SensorEventListener {
 				}
 			}
 			
-			canvas.rotate(degreesPerNick, 0.5f, 0.5f);
+			canvas.rotate(-degreesPerNick, 0.5f, 0.5f);
 		}
 		canvas.restore();		
 	}
@@ -610,9 +613,15 @@ public final class Thermometer extends View implements SensorEventListener {
 	
 	@Override
 	protected void onDraw(Canvas canvas) {
+        /**
+         * 将不变元素画到Bitmap中，优化性能（缺点是Bitmap会占用内存）
+         */
 		drawBackground(canvas);
 
-		float scale = (float) getWidth();		
+        /**
+         *
+         */
+		float scale = (float) getWidth();
 		canvas.save(Canvas.MATRIX_SAVE_FLAG);
 		canvas.scale(scale, scale);
 
